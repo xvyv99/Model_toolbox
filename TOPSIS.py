@@ -9,11 +9,14 @@ class Attr(Enum):
 class TOPSIS:
     Data: np.ndarray
     Weight: np.ndarray
+    n: int #待评价对象数
+    m: int #对象的指标数
 
     def __init__(self,data: np.ndarray,weight: np.ndarray):
         assert data.shape[1] == weight.shape[0] 
         self.Data = data
         self.Weight = weight
+        self.n,self.m = self.Data.shape
 
     def concordAttr(self,attr_lst: list[Attr]):
         '''同向化指标'''
@@ -48,21 +51,42 @@ class TOPSIS:
                     raise Exception("Value out of range.")
             vector_concord = np.vectorize(concord)
             return vector_concord(col)
+
+        func_dic = {
+                Attr.Minimal:minimal_attr,
+                Attr.Intermediate:intermediate_attr,
+                Attr.Interval:interval_attr
+        }
         
         assert len(attr_lst) == self.Weight.shape[0]
-        res_matrix = np.zeros_like(self.Data)
-        for x in range(self.Data.shape[1]):
-            pass
-    
-    def Normalization(self):
-        '''数据归一化'''
-        pass
+        for i,x in enumerate(attr_lst):
+            self.Data[:,i] = func_dic[x[0]](self.Data[:,i],*x[1:])  
 
-    def calcAssessment(self):
+        #self.Data = np.transpose(res_matrix)
+    
+    def Normalization(self) -> None:
+        '''数据归一化'''
+        col = []
+        for c in range(self.m):
+            col = self.Data[:,c]
+            self.Data[:,c] = col / np.sqrt(np.sum(np.square(col)))
+
+    def calcAssessment(self) -> list[float]:
         '''对对象进行评价'''
-        def situation():
-            '''计算最优方案与最劣方案'''
-            pass
+        worst_lst,best_lst = [],[]
+        col = []
+        for x in range(self.m):
+            col = self.Data[:,x]
+            worst_lst.append(np.min(col))
+            best_lst.append(np.max(col))
+        #计算最优方案与最劣方案
+       score_lst = []
+       worst_appr,best_appr = None,None
+       for x in range(self.n):
+            worst_appr = np.sqrt(np.sum(self.Weight*np.square(self.Data[x]-worst_lst)))
+            best_appr = np.sqrt(np.sum(self.Weight*np.square(self.Data[x]-best_lst)))
+            score_lst.append(worst_appr/(worst_appr+best_appr))
+        return score_lst
 
 def test_TOPSIS():
     pass
