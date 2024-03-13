@@ -1,11 +1,5 @@
 import numpy as np
 from typing import Tuple
-from enum import Enum
-
-class calcMethod(Enum):
-    Root = 0
-    Sum = 1
-    Eig = 2
 
 class AHP:
     Judge_matrix: np.ndarray # 判断矩阵
@@ -39,7 +33,7 @@ class AHP:
         else:
             return False,C_I
 
-    def calcWeight(self,method: calcMethod) -> np.ndarray:
+    def calcWeight(self,method: str) -> np.ndarray:
         '''计算权重'''
         def root_method():
             '''方根法'''
@@ -61,11 +55,11 @@ class AHP:
             weight = weight_ / np.sum(weight_)
             return weight
 
-        if method == calcMethod.Root:
+        if method == "Root":
             return root_method()
-        elif method == calcMethod.Sum:
+        elif method == "Sum":
             return sum_method()
-        elif method == calcMethod.Eig:
+        elif method == "Eig":
             return eig_method()
 
 def test_AHP():
@@ -79,8 +73,6 @@ def test_AHP():
     assert AHP_1.checkMatrix()
     assert AHP_2.checkMatrix()
     # 矩阵规范性测试
-    assert np.all(np.isclose(AHP_1.calcWeight(method=calcMethod.Root),np.array([0.48441,0.42317,0.09242]),atol=atol))
-    assert np.all(np.isclose(AHP_2.calcWeight(method=calcMethod.Sum),np.array([0.14286,0.28571,0.57143]),atol=atol))
-    print(AHP_2.calcWeight(method=calcMethod.Eig))
-    # 权重计算方法测试,验证结果来源于SPSSPRO
-test_AHP()
+    assert np.all(np.isclose(AHP_1.calcWeight("Root"),np.array([0.48441,0.42317,0.09242]),atol=atol))
+    assert np.all(np.isclose(AHP_2.calcWeight("Sum"),np.array([0.14286,0.28571,0.57143]),atol=atol))
+    # 权重计算方法测试,验证数据来源于SPSSPRO
